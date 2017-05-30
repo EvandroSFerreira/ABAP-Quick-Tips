@@ -1,0 +1,61 @@
+REPORT z_move_corresponding_table.
+
+TYPES:  BEGIN OF ty_marc1,
+          matnr TYPE matnr,
+          werks TYPE werks,
+          ekgrp TYPE ekgrp,
+          dismm TYPE dismm,
+          dispo TYPE dispo,
+        END OF ty_marc1.
+
+TYPES: BEGIN OF ty_marc2,
+         matnr TYPE matnr,
+         werks TYPE werks,
+         ekgrp TYPE ekgrp,
+       END OF ty_marc2.
+
+* Nested structure
+TYPES: BEGIN OF ty_itab1,
+         matnr TYPE matnr,
+         bismt TYPE bismt,
+         marc  TYPE STANDARD TABLE OF ty_marc1 WITH EMPTY KEY,
+       END OF ty_itab1.
+
+* Nested structure
+TYPES: BEGIN OF ty_itab2,
+         matnr TYPE matnr,
+         bismt TYPE bismt,
+         marc  TYPE STANDARD TABLE OF ty_marc2 WITH EMPTY KEY,
+       END OF ty_itab2.
+
+DATA: it_marc1 TYPE STANDARD TABLE OF ty_marc1,
+      itab1    TYPE STANDARD TABLE OF ty_itab1,
+      itab2    TYPE STANDARD TABLE OF ty_itab2.
+
+* General Material Data
+SELECT matnr
+       bismt
+ FROM mara
+ INTO CORRESPONDING FIELDS OF TABLE itab1
+   WHERE mtart EQ 'FERT'.
+
+* DATA(wa) Inline declaration of variable
+LOOP AT itab1 INTO DATA(wa).
+
+* Plant Data for Material
+* Please, this select just to show moving data from two internal table. Avoid select inside a loop.
+  SELECT matnr
+         werks
+         ekgrp
+         dismm
+         dispo
+   FROM marc INTO TABLE it_marc1
+        WHERE matnr EQ wa-matnr.
+
+* Move internal table to another internal table
+  MOVE-CORRESPONDING it_marc1 TO wa-marc.
+
+  MODIFY itab1 FROM wa TRANSPORTING marc.
+  CLEAR it_marc1.
+
+ENDLOOP.
