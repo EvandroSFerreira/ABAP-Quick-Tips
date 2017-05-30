@@ -1,0 +1,19 @@
+REPORT z_inline_declaration.
+
+
+START-OF-SELECTION.
+* Inline declaration for select need @DATA( )
+  SELECT matnr, bismt FROM mara
+    INTO TABLE @DATA(it_mara)
+      WHERE mtart EQ 'FERT'.
+
+* Inline declaration for ASSIGNING  FIELD-SYMBOL( )
+  LOOP AT it_mara ASSIGNING FIELD-SYMBOL(<ls_mara>).
+    WRITE:/ <ls_mara>-matnr, <ls_mara>-bismt.
+  ENDLOOP.
+
+* Inline declaration for work area DATA( )
+  READ TABLE it_mara INDEX 1 INTO DATA(ls_mara).
+  IF sy-subrc EQ 0.
+    WRITE:/ ls_mara-matnr, ls_mara-bismt.
+  ENDIF.
