@@ -1,0 +1,95 @@
+REPORT z_secondary_key.
+
+* Deep Structure
+TYPES:
+  BEGIN OF yt_line_type,
+    idx         TYPE i,
+    name        TYPE string,
+    postal_code TYPE i,
+  END OF yt_line_type.
+
+* Internal hashed table with secondary key,
+* a secondary table key is declared using the UNIQUE | NON-UNIQUE KEY <key_name> COMPONENTS
+DATA: it_tab1 TYPE HASHED TABLE OF yt_line_type
+              WITH UNIQUE KEY idx
+              WITH NON-UNIQUE SORTED KEY key1 COMPONENTS name postal_code.
+
+* Internal hashed table without secondary key
+DATA: it_tab2 TYPE HASHED TABLE OF yt_line_type
+              WITH UNIQUE KEY idx.
+
+CONSTANTS   c_mess  TYPE i VALUE 1000.
+
+PARAMETERS: p_lines TYPE i DEFAULT 10000.
+
+START-OF-SELECTION.
+  PERFORM f_load_second_key.
+  PERFORM f_load_no_second_key.
+
+*&---------------------------------------------------------------------*
+*&      Form  F_LOAD_SECOND_KEY
+*&---------------------------------------------------------------------*
+FORM f_load_second_key .
+
+  DATA: ls_wa      TYPE yt_line_type.
+
+  DATA: lv_rtime  TYPE decfloat34,
+        lv_t0     TYPE i,
+        lv_t1     TYPE i,
+        lv_rtimex TYPE char25.
+
+
+* Fill table
+  ls_wa-name = sy-uname.
+  DO p_lines TIMES.
+    ls_wa-idx = ls_wa-postal_code = sy-index.
+    INSERT ls_wa INTO TABLE it_tab1.
+  ENDDO.
+
+* Perform measurement
+  GET RUN TIME FIELD lv_t0.
+  DO c_mess TIMES.
+    READ TABLE it_tab1 INTO ls_wa
+      WITH KEY key1 COMPONENTS name = `Bugsy Siegel`
+                               postal_code = 89033.
+  ENDDO.
+  GET RUN TIME FIELD lv_t1.
+
+* Calculate runtime
+  lv_rtime  = ( lv_t1 - lv_t0 ) / c_mess.
+  lv_rtimex =  |{ lv_rtime STYLE = SCIENTIFIC }|.
+  WRITE:/ 'Runtime without second key:', lv_rtimex .
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&      Form  F_LOAD_NO_SECOND_KEY
+*&---------------------------------------------------------------------*
+FORM f_load_no_second_key .
+  DATA: ls_wa      TYPE yt_line_type.
+
+  DATA: lv_rtime  TYPE decfloat34,
+        lv_t0     TYPE i,
+        lv_t1     TYPE i,
+        lv_rtimex TYPE char25.
+
+* Fill table
+  ls_wa-name = sy-uname.
+  DO p_lines TIMES.
+    ls_wa-idx = ls_wa-postal_code = sy-index.
+    INSERT ls_wa INTO TABLE it_tab1.
+  ENDDO.
+
+* Perform measurement
+  GET RUN TIME FIELD lv_t0.
+  DO c_mess TIMES.
+    READ TABLE it_tab1 INTO ls_wa
+      WITH KEY name        = `Bugsy Siegel`
+               postal_code = 89033.
+  ENDDO.
+  GET RUN TIME FIELD lv_t1.
+
+* Calculate runtime
+  lv_rtime  = ( lv_t1 - lv_t0 ) / c_mess.
+  lv_rtimex =  |{ lv_rtime STYLE = SCIENTIFIC }|.
+  WRITE:/ 'Runtime without second key:', lv_rtimex .
+ENDFORM.
