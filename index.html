@@ -7,12 +7,12 @@
 	<script src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
 id="sap-ui-bootstrap"
 			id="sap-ui-bootstrap"
-		data-sap-ui-theme="sap_belize"
-		data-sap-ui-libs="sap.m">
-	</script>
+		data-sap-ui-theme='sap_bluecrystal' data-sap-ui-libs='sap.ui.commons'>
+	<script>
+		var hello = new sap.ui.commons.TextView({ text: 'Hello World',
+});
+hello.placeAt('content'); </script>
 </head>
-   <body>
-      <p>Hello World</p>
-   </body>
+<body class='sapUiBody'> <div id='content'></div>
 </body>
 </html>
